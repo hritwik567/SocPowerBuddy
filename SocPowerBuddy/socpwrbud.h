@@ -11,6 +11,9 @@
 
 #include <Foundation/Foundation.h>
 #include <sys/sysctl.h>
+#include <mach/mach_time.h>
+
+int getUptimeInMilliseconds();
 
 /*
  * Extern declarations
@@ -146,7 +149,7 @@ typedef struct {
  * Function declarations
  */
 void error(int, const char*, ...);
-void textOutput(iorep_data*, static_data*, variating_data*, bool_data*, cmd_data*, unsigned int);
+void textOutput(iorep_data*, static_data*, variating_data*, bool_data*, cmd_data*, unsigned int, int);
 void plistOutput(iorep_data*, static_data*, variating_data*, bool_data*, cmd_data*, unsigned int);
 
 void sample(iorep_data*, static_data*, variating_data*, cmd_data*);

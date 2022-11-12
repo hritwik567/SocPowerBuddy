@@ -18,102 +18,45 @@ void textOutput(iorep_data*     iorep,
                 variating_data* vd,
                 bool_data*      bd,
                 cmd_data*       cmd,
-                unsigned int    current_loop) {
-    
-    unsigned int current_core = 0;
-    
-    fprintf(cmd->file_out, "%s %s (Sample %d):\n\n", [sd->extra[0] UTF8String], [sd->extra[1] UTF8String], current_loop + 1);
+                unsigned int    current_loop,
+                int start_time) {
+   
+    if (current_loop == 0)
+    {
+        fprintf(cmd->file_out, "Timestamp,");
+        fprintf(cmd->file_out, "4-Core %s ECPU,Core 0,Core 1,Core 2,Core 3,", (char*)[sd->extra[2] UTF8String]);
+        fprintf(cmd->file_out, "4-Core %s PCPU,Core 4,Core 5,Core 6,Core 7\n", (char*)[sd->extra[3] UTF8String]);
+
+    }
+    int num_col = 11;
+    int uptime = getUptimeInMilliseconds() - start_time;
+
+    num_col--; 
+    fprintf(cmd->file_out, "%d,", uptime);
     
     for (int i = 0; i < [vd->cluster_freqs count]; i++) {
-        if ((bd->ecpu && [sd->complex_freq_channels[i] rangeOfString:@"ECPU"].location != NSNotFound) ||
-            (bd->pcpu && [sd->complex_freq_channels[i] rangeOfString:@"PCPU"].location != NSNotFound) ||
-            (bd->gpu && [sd->complex_freq_channels[i] rangeOfString:@"GPU"].location != NSNotFound)) {
+        if (([sd->complex_freq_channels[i] rangeOfString:@"ECPU"].location != NSNotFound) ||
+            ([sd->complex_freq_channels[i] rangeOfString:@"PCPU"].location != NSNotFound)) {
         
-            char* microarch = "Unknown";
-            
-            if ([sd->complex_freq_channels[i] rangeOfString:@"ECPU"].location != NSNotFound) microarch = (char*)[sd->extra[2] UTF8String];
-            else if ([sd->complex_freq_channels[i] rangeOfString:@"PCPU"].location != NSNotFound) microarch = (char*)[sd->extra[3] UTF8String];
-            
-            if ([sd->complex_freq_channels[i] rangeOfString:@"CPU"].location != NSNotFound) {
-                fprintf(cmd->file_out, "\t%d-Core %s %s:\n\n", [sd->cluster_core_counts[i] intValue], microarch, [sd->complex_freq_channels[i] UTF8String]);
-                
-                if (bd->cycles) fprintf(cmd->file_out, "\t\tSupposed Cycles Spent:  %ld\n", [vd->cluster_instrcts_clk[i] longValue]);
-                
-                /* instructions metrics are only available on CPU clusters */
-                if (bd->intstrcts) {
-                    float retired = [vd->cluster_instrcts_ret[i] floatValue];
-                    
-                    if (retired > 0) {
-                        fprintf(cmd->file_out, "\t\tInstructions Retired:   %.5e\n", retired);
-                        fprintf(cmd->file_out, "\t\tInstructions Per-Clock: %.5f\n\n", retired / [vd->cluster_instrcts_clk[i] floatValue]);
-                    } else {
-                        fprintf(cmd->file_out, "\t\tInstructions Retired:   0\n");
-                        fprintf(cmd->file_out, "\t\tInstructions Per-Clock: 0\n\n");
-                    }
-                }
-            } else
-                fprintf(cmd->file_out, "\t%d-Core Integrated Graphics:\n\n", sd->gpu_core_count);
-
-            /*
-             * printing outputs based on tuned cmd args
-             */
-            if (bd->power) fprintf(cmd->file_out, "\t\tPower Consumption: %s %s\n", [decfrmt((float)([vd->cluster_pwrs[i] floatValue] * cmd->power_measure)) UTF8String], cmd->power_measure_un);
-            if (bd->freq)  fprintf(cmd->file_out, "\t\tActive Frequency:  %s %s\n", [decfrmt((float)(fabs([vd->cluster_freqs[i] floatValue] * cmd->freq_measure))) UTF8String], cmd->freq_measure_un);
-            if (bd->idle)  fprintf(cmd->file_out, "\n");
-            if (bd->res)   fprintf(cmd->file_out, "\t\tActive Residency:  %s%%\n",  [decfrmt(fabs(100-[vd->cluster_use[i] floatValue])) UTF8String]);
-            if (bd->idle)  fprintf(cmd->file_out, "\t\tIdle Residency:    %s%%\n",  [decfrmt(fabs([vd->cluster_use[i] floatValue])) UTF8String]);
-            
-            if (bd->dvfm) {
-                if ([vd->cluster_freqs[i] floatValue] > 0) {
-                    fprintf(cmd->file_out, "\t\tDvfm Distribution: (");
-                    
-                    for (int iii = 0; iii < [sd->dvfm_states[i] count]; iii++) {
-                        float res = [vd->cluster_residencies[i][iii] floatValue];
-                        
-                        if (res > 0) {
-                            fprintf(cmd->file_out, "%.f MHz: %s%%",[sd->dvfm_states[i][iii] floatValue], [decfrmt(res*100) UTF8String]);
-                            if (bd->dvfm_ms) fprintf(cmd->file_out, " [%.fms]", res * cmd->interval);
-                            fprintf(cmd->file_out, "   ");
-                        }
-                    }
-                    fprintf(cmd->file_out, "\b\b\b)\n");
-                }
-            }
-            fprintf(cmd->file_out, "\n");
+            num_col--;
+            fprintf(cmd->file_out, "%s,", [decfrmt((float)(fabs([vd->cluster_freqs[i] floatValue] * cmd->freq_measure))) UTF8String]);
             
             if (i <= ([sd->cluster_core_counts count]-1)) {
                 for (int ii = 0; ii < [sd->cluster_core_counts[i] intValue]; ii++) {
-                    fprintf(cmd->file_out, "\t\tCore %d:\n", current_core);
-                    if (bd->power) fprintf(cmd->file_out, "\t\t\tPower Consumption: %s %s\n",  [decfrmt((float)([vd->core_pwrs[i][ii] floatValue] * cmd->power_measure)) UTF8String], cmd->power_measure_un);
-                    if (bd->freq)  fprintf(cmd->file_out, "\t\t\tActive Frequency:  %s %s\n",  [decfrmt((float)(fabs([vd->core_freqs[i][ii] floatValue] * cmd->freq_measure))) UTF8String], cmd->freq_measure_un);
-                    if (bd->res)   fprintf(cmd->file_out, "\t\t\tActive Residency:  %s%%\n",  [decfrmt((float)(fabs([vd->core_use[i][ii] floatValue]))) UTF8String]);
-                    if (bd->idle)  fprintf(cmd->file_out, "\t\t\tIdle Residency:    %s%%\n",  [decfrmt((float)(fabs(100-[vd->core_use[i][ii] floatValue]))) UTF8String]);
-                    
-                    if (bd->dvfm) {
-                        if ([vd->core_freqs[i][ii] floatValue] > 0) {
-                            fprintf(cmd->file_out, "\t\t\tDvfm Distribution: (");
-                            
-                            for (int iii = 0; iii < [sd->dvfm_states[i] count]; iii++) {
-                                float res = [vd->core_residencies[i][ii][iii] floatValue];
-                                
-                                if (res > 0) {
-                                    fprintf(cmd->file_out, "%.f MHz: %s%%",[sd->dvfm_states[i][iii] floatValue], [decfrmt(res*100)UTF8String]);
-                                    if (bd->dvfm_ms) fprintf(cmd->file_out, " [%.fms]", res * cmd->interval);
-                                    fprintf(cmd->file_out, "   ");
-                                }
-                            }
-                            fprintf(cmd->file_out, "\b\b\b)\n");
-                        } else {
-                            fprintf(cmd->file_out, "\t\t\tDvfm Distribution: None\n");
-                        }
+                    num_col--;
+                    if (num_col == 0)
+                    {
+                        fprintf(cmd->file_out, "%s",  [decfrmt((float)(fabs([vd->core_freqs[i][ii] floatValue] * cmd->freq_measure))) UTF8String]);
                     }
-                    
-                    current_core++;
+                    else
+                    {
+                        fprintf(cmd->file_out, "%s,",  [decfrmt((float)(fabs([vd->core_freqs[i][ii] floatValue] * cmd->freq_measure))) UTF8String]);
+                    }
                 }
-                fprintf(cmd->file_out, "\n");
             }
         }
     }
+    fprintf(cmd->file_out, "\n");
 }
 
 /*

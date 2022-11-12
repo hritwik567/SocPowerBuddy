@@ -10,6 +10,21 @@
 #include <stdarg.h>
 #include "socpwrbud.h"
 
+int getUptimeInMilliseconds()
+{
+    const int64_t kOneMillion = 1000 * 1000;
+    static mach_timebase_info_data_t s_timebase_info;
+
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        (void) mach_timebase_info(&s_timebase_info);
+    });
+
+    // mach_absolute_time() returns billionth of seconds,
+    // so divide by one million to get milliseconds
+    return (int)((mach_absolute_time() * s_timebase_info.numer) / (kOneMillion * s_timebase_info.denom));
+}
+
 /*
  * Main Macros
  */
@@ -357,12 +372,13 @@ int main(int argc, char * argv[])
          * dealing with outputing
          */
         if (cmd.samples <= 0) cmd.samples = -1;
+        int start_time = getUptimeInMilliseconds();
         for(int L = cmd.samples; L--;) { 
             sample(&iorep, &sd, &vd, &cmd);
             format(&sd, &vd);
             
             if (cmd.plist == false)
-                textOutput(&iorep, &sd, &vd, &bd, &cmd, current_loop);
+                textOutput(&iorep, &sd, &vd, &bd, &cmd, current_loop, start_time);
             else {
                 fprintf(cmd.file_out, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
                 fprintf(cmd.file_out, "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n");
