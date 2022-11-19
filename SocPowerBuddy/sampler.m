@@ -87,10 +87,12 @@ void sample(iorep_data* iorep,  // holds our channel subs from the iorep
         NSString* group       = IOReportChannelGetGroup(sample);
         long      value       = IOReportSimpleGetIntegerValue(sample, 0);
         
-        for (int ii = 0; ii < [sd->complex_freq_channels count]; ii++) {
+        for (int ii = 0; ii < [sd->complex_pwr_channels count]; ii++) {
             if ([group isEqual:@"Energy Model"]) {
                 if ([chann_name isEqual:sd->complex_pwr_channels[ii]])
+                {
                     vd->cluster_pwrs[ii] = [NSNumber numberWithFloat:(float)value/(cmd->interval/1e+3)];
+                }
                 
                 if (ii <= ([sd->cluster_core_counts count]-1)) {
                     for (int iii = 0; iii < [sd->cluster_core_counts[ii] intValue]; iii++) {
@@ -105,9 +107,11 @@ void sample(iorep_data* iorep,  // holds our channel subs from the iorep
              * so we are grabbing that from the PMP
              */
             if ([sd->extra[0] isEqual:@"Apple M1"] || [sd->extra[0] isEqual:@"Apple M2"]) {
-                if ([group isEqual:@"PMP"]) {
-                    if ([chann_name isEqual:@"GPU"])
-                        vd->cluster_pwrs[[vd->cluster_pwrs count]-1] = [NSNumber numberWithFloat:(float)value/(cmd->interval/1e+3)];
+                if ([group isEqual:@"Energy Model"]) {
+                    if ([chann_name isEqual:@"GPU Energy"])
+                    {
+                        vd->cluster_pwrs[[vd->cluster_pwrs count]-1] = [NSNumber numberWithFloat:(float)value/(cmd->interval * 1e+3)];    
+                    }
                 }
             }
         }

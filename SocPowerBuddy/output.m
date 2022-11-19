@@ -25,10 +25,11 @@ void textOutput(iorep_data*     iorep,
     {
         fprintf(cmd->file_out, "Timestamp,");
         fprintf(cmd->file_out, "4-Core %s ECPU,Core 0,Core 1,Core 2,Core 3,", (char*)[sd->extra[2] UTF8String]);
-        fprintf(cmd->file_out, "4-Core %s PCPU,Core 4,Core 5,Core 6,Core 7\n", (char*)[sd->extra[3] UTF8String]);
+        fprintf(cmd->file_out, "4-Core %s PCPU,Core 4,Core 5,Core 6,Core 7,", (char*)[sd->extra[3] UTF8String]);
+        fprintf(cmd->file_out, "GPU,GPU Power\n");
 
     }
-    int num_col = 11;
+    int num_col = 13;
     int uptime = getUptimeInMilliseconds() - start_time;
 
     num_col--; 
@@ -53,6 +54,18 @@ void textOutput(iorep_data*     iorep,
                         fprintf(cmd->file_out, "%s,",  [decfrmt((float)(fabs([vd->core_freqs[i][ii] floatValue] * cmd->freq_measure))) UTF8String]);
                     }
                 }
+            }
+        } else if ([sd->complex_freq_channels[i] rangeOfString:@"GPU"].location != NSNotFound) {
+            num_col -= 2;
+            if (num_col == 0)
+            {
+                fprintf(cmd->file_out, "%s,", [decfrmt((float)(fabs([vd->cluster_freqs[i] floatValue] * cmd->freq_measure))) UTF8String]);   
+                fprintf(cmd->file_out, "%s", [decfrmt((float)([vd->cluster_pwrs[i] floatValue] * cmd->power_measure)) UTF8String]); 
+            }
+            else
+            {
+                fprintf(cmd->file_out, "%s,", [decfrmt((float)(fabs([vd->cluster_freqs[i] floatValue] * cmd->freq_measure))) UTF8String]);   
+                fprintf(cmd->file_out, "%s,", [decfrmt((float)([vd->cluster_pwrs[i] floatValue] * cmd->power_measure)) UTF8String]); 
             }
         }
     }

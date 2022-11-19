@@ -308,7 +308,7 @@ int main(int argc, char * argv[])
                                sd.dvfm_states_holder[1],
                                sd.dvfm_states_holder[2]];
         } else {
-            sd.complex_pwr_channels = @[@"ECPU", @"PCPU", @"GPU"];
+            sd.complex_pwr_channels = @[@"ECPU", @"PCPU", @"GPU Energy"];
             sd.core_pwr_channels    = @[@"ECPU", @"PCPU"];
 
             sd.complex_freq_channels = @[@"ECPU", @"PCPU", @"GPUPH"];
