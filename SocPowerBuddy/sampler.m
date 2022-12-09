@@ -91,13 +91,13 @@ void sample(iorep_data* iorep,  // holds our channel subs from the iorep
             if ([group isEqual:@"Energy Model"]) {
                 if ([chann_name isEqual:sd->complex_pwr_channels[ii]])
                 {
-                    vd->cluster_pwrs[ii] = [NSNumber numberWithFloat:(float)value/(cmd->interval/1e+3)];
+                    vd->cluster_pwrs[ii] = [NSNumber numberWithFloat:(float)value];
                 }
                 
                 if (ii <= ([sd->cluster_core_counts count]-1)) {
                     for (int iii = 0; iii < [sd->cluster_core_counts[ii] intValue]; iii++) {
                         if ([chann_name isEqual:[NSString stringWithFormat:@"%@%d",sd->core_pwr_channels[ii], iii, nil]])
-                            vd->core_pwrs[ii][iii] = [NSNumber numberWithFloat:(float)value/(cmd->interval/1e+3)];
+                            vd->core_pwrs[ii][iii] = [NSNumber numberWithFloat:(float)value];
                     }
                 }
             }
@@ -105,12 +105,19 @@ void sample(iorep_data* iorep,  // holds our channel subs from the iorep
             /*
              * the GPU entry doen't seem to exist on Apple M1 Energy Model (probably same with M2)
              * so we are grabbing that from the PMP
+             *
+             * Edit Hritvik: The "GPU Energy" entry doesn't have a corresponding counter, so we are using this 
              */
             if ([sd->extra[0] isEqual:@"Apple M1"] || [sd->extra[0] isEqual:@"Apple M2"]) {
-                if ([group isEqual:@"Energy Model"]) {
-                    if ([chann_name isEqual:@"GPU Energy"])
+                if ([group isEqual:@"PMP"]) {
+                    if ([chann_name isEqual:@"GPU"])
                     {
-                        vd->cluster_pwrs[[vd->cluster_pwrs count]-1] = [NSNumber numberWithFloat:(float)value/(cmd->interval * 1e+3)];    
+                        vd->cluster_pwrs[[vd->cluster_pwrs count]-1] = [NSNumber numberWithFloat:(float)value];    
+                    }
+                    
+                    if ([chann_name isEqual:@"last update"])
+                    {
+                        vd->time_delta = value;
                     }
                 }
             }

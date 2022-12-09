@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
             clusters = 3;
         else if ([cpu rangeOfString:@"Ultra"].location != NSNotFound)
             clusters = 6;
-        
+       
         CFMutableDictionaryRef  subchn = NULL;
         CFMutableDictionaryRef  chn    = IOReportCopyAllChannels(0, 0);
         IOReportSubscriptionRef sub    = IOReportCreateSubscription(NULL, chn, &subchn, 0, 0);
@@ -52,14 +52,15 @@ int main(int argc, char* argv[])
             NSString* group         = IOReportChannelGetGroup(sample);
             NSString* subgroup      = IOReportChannelGetSubGroup(sample);
             NSString* chann_name    = IOReportChannelGetChannelName(sample);
-            
+        
+            /*
             if ([group isEqual:@"CPU Stats"]  ||
                 [group isEqual:@"GPU Stats"]  ||
                 [group isEqual:@"AMC Stats"]  ||
                 [group isEqual:@"CLPC Stats"] ||
                 [group isEqual:@"PMP"]        ||
                 [group isEqual:@"Energy Model"])  {
-            
+            */
                 switch (IOReportChannelGetFormat(sample)) {
                     case kIOReportFormatSimple:
                         printf("Grp: %s   Subgrp: %s   Chn: %s   Int: %ld\n", [group UTF8String] , [subgroup UTF8String], [chann_name UTF8String], IOReportSimpleGetIntegerValue(sample, 0));
@@ -74,7 +75,7 @@ int main(int argc, char* argv[])
                         break;
                 }
                 
-            }
+            // }
             return kIOReportIterOk;
         });
     

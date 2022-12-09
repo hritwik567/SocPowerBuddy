@@ -147,7 +147,7 @@ int main(int argc, char * argv[])
         int optindex = 0;
         unsigned int current_loop = 0;
         
-        cmd.power_measure    = 1;
+        cmd.power_measure    = 1e6;
         cmd.freq_measure     = 1;
         cmd.power_measure_un = "mW";
         cmd.freq_measure_un  = "MHz";
@@ -199,7 +199,7 @@ int main(int argc, char * argv[])
                 case 'H': hide_unit_str = [NSString stringWithFormat:@"%s", strdup(optarg)];
                           cmd.hide_units = [hide_unit_str componentsSeparatedByString:@","];
                           break;
-                case 'w': cmd.power_measure = 1e-3;
+                case 'w': cmd.power_measure = 1e3;
                           cmd.power_measure_un = "W";
                           break;
                 case 'g': cmd.freq_measure = 1e-3;

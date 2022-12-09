@@ -42,8 +42,10 @@ void textOutput(iorep_data*     iorep,
             num_col--;
             fprintf(cmd->file_out, "%s,", [decfrmt((float)(fabs([vd->cluster_freqs[i] floatValue] * cmd->freq_measure))) UTF8String]);
             
-            if (i <= ([sd->cluster_core_counts count]-1)) {
-                for (int ii = 0; ii < [sd->cluster_core_counts[i] intValue]; ii++) {
+            if (i <= ([sd->cluster_core_counts count]-1))
+            {
+                for (int ii = 0; ii < [sd->cluster_core_counts[i] intValue]; ii++)
+                {
                     num_col--;
                     if (num_col == 0)
                     {
@@ -55,17 +57,19 @@ void textOutput(iorep_data*     iorep,
                     }
                 }
             }
-        } else if ([sd->complex_freq_channels[i] rangeOfString:@"GPU"].location != NSNotFound) {
+        } 
+        else if ([sd->complex_freq_channels[i] rangeOfString:@"GPU"].location != NSNotFound)
+        {
             num_col -= 2;
             if (num_col == 0)
             {
                 fprintf(cmd->file_out, "%s,", [decfrmt((float)(fabs([vd->cluster_freqs[i] floatValue] * cmd->freq_measure))) UTF8String]);   
-                fprintf(cmd->file_out, "%s", [decfrmt((float)([vd->cluster_pwrs[i] floatValue] * cmd->power_measure)) UTF8String]); 
+                fprintf(cmd->file_out, "%s", [decfrmt((float)(([vd->cluster_pwrs[i] floatValue] / vd->time_delta) * cmd->power_measure)) UTF8String]); 
             }
             else
             {
                 fprintf(cmd->file_out, "%s,", [decfrmt((float)(fabs([vd->cluster_freqs[i] floatValue] * cmd->freq_measure))) UTF8String]);   
-                fprintf(cmd->file_out, "%s,", [decfrmt((float)([vd->cluster_pwrs[i] floatValue] * cmd->power_measure)) UTF8String]); 
+                fprintf(cmd->file_out, "%s,", [decfrmt((float)(([vd->cluster_pwrs[i] floatValue] / vd->time_delta) * cmd->power_measure)) UTF8String]); 
             }
         }
     }

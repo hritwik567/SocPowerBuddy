@@ -104,6 +104,8 @@ typedef struct {
     /* data for instructions and cycles  */
     NSMutableArray* cluster_instrcts_ret;
     NSMutableArray* cluster_instrcts_clk;
+
+    long time_delta;
 //
 //    unsigned long package_instrcts_ret;
 //    unsigned long package_instrcts_clk;
