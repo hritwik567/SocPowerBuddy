@@ -26,7 +26,7 @@ void textOutput(iorep_data*     iorep,
         fprintf(cmd->file_out, "Timestamp,");
         fprintf(cmd->file_out, "4-Core %s ECPU,Core 0,Core 1,Core 2,Core 3,", (char*)[sd->extra[2] UTF8String]);
         fprintf(cmd->file_out, "4-Core %s PCPU,Core 4,Core 5,Core 6,Core 7,", (char*)[sd->extra[3] UTF8String]);
-        fprintf(cmd->file_out, "GPU,GPU Power\n");
+        fprintf(cmd->file_out, "GPU Frequency (%s),GPU Power (%s)\n", cmd->freq_measure_un, cmd->power_measure_un);
 
     }
     int num_col = 13;
