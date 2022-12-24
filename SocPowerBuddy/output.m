@@ -24,12 +24,12 @@ void textOutput(iorep_data*     iorep,
     if (current_loop == 0)
     {
         fprintf(cmd->file_out, "Timestamp,");
-        fprintf(cmd->file_out, "4-Core %s ECPU,Core 0,Core 1,Core 2,Core 3,", (char*)[sd->extra[2] UTF8String]);
-        fprintf(cmd->file_out, "4-Core %s PCPU,Core 4,Core 5,Core 6,Core 7,", (char*)[sd->extra[3] UTF8String]);
+        fprintf(cmd->file_out, "4-Core %s ECPU,ECPU Power (%s),Core 0,Core 1,Core 2,Core 3,", (char*)[sd->extra[2] UTF8String], cmd->power_measure_un);
+        fprintf(cmd->file_out, "4-Core %s PCPU,PCPU Power (%s),Core 4,Core 5,Core 6,Core 7,", (char*)[sd->extra[3] UTF8String], cmd->power_measure_un);
         fprintf(cmd->file_out, "GPU Frequency (%s),GPU Power (%s)\n", cmd->freq_measure_un, cmd->power_measure_un);
 
     }
-    int num_col = 13;
+    int num_col = 15;
     int uptime = getUptimeInMilliseconds() - start_time;
 
     num_col--; 
@@ -37,43 +37,32 @@ void textOutput(iorep_data*     iorep,
     
     for (int i = 0; i < [vd->cluster_freqs count]; i++) {
         if (([sd->complex_freq_channels[i] rangeOfString:@"ECPU"].location != NSNotFound) ||
-            ([sd->complex_freq_channels[i] rangeOfString:@"PCPU"].location != NSNotFound)) {
+            ([sd->complex_freq_channels[i] rangeOfString:@"PCPU"].location != NSNotFound) ||
+            ([sd->complex_freq_channels[i] rangeOfString:@"GPU"].location != NSNotFound)) {
         
-            num_col--;
+            num_col -= 2;
             fprintf(cmd->file_out, "%s,", [decfrmt((float)(fabs([vd->cluster_freqs[i] floatValue] * cmd->freq_measure))) UTF8String]);
+            fprintf(cmd->file_out, "%s", [decfrmt((float)(([vd->cluster_pwrs[i] floatValue] / vd->time_delta) * cmd->power_measure)) UTF8String]); 
+
+            if (num_col > 0)
+            {
+                fprintf(cmd->file_out, ",");
+            }
+            else
+            {
+                fprintf(cmd->file_out, "\n");
+            }
             
             if (i <= ([sd->cluster_core_counts count]-1))
             {
                 for (int ii = 0; ii < [sd->cluster_core_counts[i] intValue]; ii++)
                 {
-                    num_col--;
-                    if (num_col == 0)
-                    {
-                        fprintf(cmd->file_out, "%s",  [decfrmt((float)(fabs([vd->core_freqs[i][ii] floatValue] * cmd->freq_measure))) UTF8String]);
-                    }
-                    else
-                    {
-                        fprintf(cmd->file_out, "%s,",  [decfrmt((float)(fabs([vd->core_freqs[i][ii] floatValue] * cmd->freq_measure))) UTF8String]);
-                    }
+                    num_col -= 1;
+                    fprintf(cmd->file_out, "%s,",  [decfrmt((float)(fabs([vd->core_freqs[i][ii] floatValue] * cmd->freq_measure))) UTF8String]);
                 }
             }
         } 
-        else if ([sd->complex_freq_channels[i] rangeOfString:@"GPU"].location != NSNotFound)
-        {
-            num_col -= 2;
-            if (num_col == 0)
-            {
-                fprintf(cmd->file_out, "%s,", [decfrmt((float)(fabs([vd->cluster_freqs[i] floatValue] * cmd->freq_measure))) UTF8String]);   
-                fprintf(cmd->file_out, "%s", [decfrmt((float)(([vd->cluster_pwrs[i] floatValue] / vd->time_delta) * cmd->power_measure)) UTF8String]); 
-            }
-            else
-            {
-                fprintf(cmd->file_out, "%s,", [decfrmt((float)(fabs([vd->cluster_freqs[i] floatValue] * cmd->freq_measure))) UTF8String]);   
-                fprintf(cmd->file_out, "%s,", [decfrmt((float)(([vd->cluster_pwrs[i] floatValue] / vd->time_delta) * cmd->power_measure)) UTF8String]); 
-            }
-        }
     }
-    fprintf(cmd->file_out, "\n");
 }
 
 /*

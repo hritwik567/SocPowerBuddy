@@ -74,6 +74,9 @@ typedef struct {
     NSArray* complex_pwr_channels;
     NSArray* core_pwr_channels;
     
+    NSArray* pmp_complex_pwr_channels;
+    NSArray* pmp_core_pwr_channels;
+    
     NSArray* complex_freq_channels;
     NSArray* core_freq_channels;
     

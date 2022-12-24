@@ -308,8 +308,13 @@ int main(int argc, char * argv[])
                                sd.dvfm_states_holder[1],
                                sd.dvfm_states_holder[2]];
         } else {
+            // ====================== Not Used ========================
             sd.complex_pwr_channels = @[@"ECPU", @"PCPU", @"GPU Energy"];
             sd.core_pwr_channels    = @[@"ECPU", @"PCPU"];
+            // ====================== Not Used ========================
+            
+            sd.pmp_complex_pwr_channels = @[@"ECPU", @"PCPU", @"GPU"];
+            sd.pmp_core_pwr_channels = @[@"ECORE", @"PCORE"];
 
             sd.complex_freq_channels = @[@"ECPU", @"PCPU", @"GPUPH"];
             sd.core_freq_channels    = @[@"ECPU", @"PCPU"];
