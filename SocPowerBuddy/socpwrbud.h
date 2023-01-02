@@ -52,13 +52,20 @@ extern NSString* IOReportChannelGetGroup(CFDictionaryRef);
 
 /* raw data form the ioreport */
 typedef struct {
+
+    /* data for Temperature*/
+    IOReportSubscriptionRef tempsub;
+    CFMutableDictionaryRef  tempsubchn;
+    CFMutableDictionaryRef  tempchn_sl0;
+    CFMutableDictionaryRef  tempchn_sl1;
+    
     /* data for Energy Model*/
     IOReportSubscriptionRef pwrsub;
     CFMutableDictionaryRef  pwrsubchn;
     CFMutableDictionaryRef  pwrchn_eng;
     CFMutableDictionaryRef  pwrchn_pmp;
 
-    /* datat for CPU/GPU Stats */
+    /* data for CPU/GPU Stats */
     IOReportSubscriptionRef cpusub;
     CFMutableDictionaryRef  cpusubchn;
     CFMutableDictionaryRef  cpuchn_cpu;
@@ -73,6 +80,8 @@ typedef struct {
 typedef struct {
     NSArray* complex_pwr_channels;
     NSArray* core_pwr_channels;
+    
+    NSArray* complex_temp_channels;
     
     NSArray* pmp_complex_pwr_channels;
     NSArray* pmp_core_pwr_channels;
@@ -99,6 +108,9 @@ typedef struct {
     NSMutableArray* core_residencies;
     NSMutableArray* core_freqs;
     NSMutableArray* core_use;
+    
+    /* data for temperature */
+    NSMutableArray* cluster_temps;
     
     /* data for power draw */
     NSMutableArray* cluster_pwrs;

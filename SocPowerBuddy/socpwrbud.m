@@ -253,10 +253,12 @@ int main(int argc, char * argv[])
         sd.cluster_core_counts  = [NSMutableArray array];
         sd.extra                = [NSMutableArray array];
         
+        vd.time_delta           = 0;
         vd.cluster_sums         = [NSMutableArray array];
         vd.cluster_residencies  = [NSMutableArray array];
         vd.cluster_freqs        = [NSMutableArray array];
         vd.cluster_use          = [NSMutableArray array];
+        vd.cluster_temps        = [NSMutableArray array];
         
         vd.core_sums            = [NSMutableArray array];
         vd.core_residencies     = [NSMutableArray array];
@@ -311,13 +313,15 @@ int main(int argc, char * argv[])
             // ====================== Not Used ========================
             sd.complex_pwr_channels = @[@"ECPU", @"PCPU", @"GPU Energy"];
             sd.core_pwr_channels    = @[@"ECPU", @"PCPU"];
-            // ====================== Not Used ========================
+            // ========================================================
             
             sd.pmp_complex_pwr_channels = @[@"ECPU", @"PCPU", @"GPU"];
             sd.pmp_core_pwr_channels = @[@"ECORE", @"PCORE"];
 
             sd.complex_freq_channels = @[@"ECPU", @"PCPU", @"GPUPH"];
             sd.core_freq_channels    = @[@"ECPU", @"PCPU"];
+
+            sd.complex_temp_channels = @[@"TVPM Slice 0", @"TVPM Slice 1"];
             
             sd.dvfm_states = @[sd.dvfm_states_holder[0],
                                sd.dvfm_states_holder[1],
@@ -331,6 +335,7 @@ int main(int argc, char * argv[])
             [vd.cluster_residencies addObject:[NSMutableArray array]];
             [vd.cluster_pwrs addObject:@0];
             [vd.cluster_freqs addObject:@0];
+            [vd.cluster_temps addObject:@0];
             [vd.cluster_use addObject:@0];
             [vd.cluster_sums addObject:@0];
             
@@ -359,19 +364,24 @@ int main(int argc, char * argv[])
          */
         iorep.cpusubchn  = NULL;
         iorep.pwrsubchn  = NULL;
+        iorep.tempsubchn  = NULL;
         iorep.clpcsubchn = NULL;
         iorep.cpuchn_cpu = IOReportCopyChannelsInGroup(@"CPU Stats", 0, 0, 0, 0);
         iorep.cpuchn_gpu = IOReportCopyChannelsInGroup(@"GPU Stats", 0, 0, 0, 0);
         iorep.pwrchn_eng = IOReportCopyChannelsInGroup(@"Energy Model", 0, 0, 0, 0);
         iorep.pwrchn_pmp = IOReportCopyChannelsInGroup(@"PMP", 0, 0, 0, 0);
+        iorep.tempchn_sl0 = IOReportCopyChannelsInGroup(@"TVPM Slice 0", 0, 0, 0, 0);
+        iorep.tempchn_sl1 = IOReportCopyChannelsInGroup(@"TVPM Slice 1", 0, 0, 0, 0); 
         iorep.clpcchn    = IOReportCopyChannelsInGroup(@"CLPC Stats", 0, 0, 0, 0);
         
         IOReportMergeChannels(iorep.cpuchn_cpu, iorep.cpuchn_gpu, NULL);
         IOReportMergeChannels(iorep.pwrchn_eng, iorep.pwrchn_pmp, NULL);
+        IOReportMergeChannels(iorep.tempchn_sl0, iorep.tempchn_sl1, NULL);
 
         iorep.cpusub  = IOReportCreateSubscription(NULL, iorep.cpuchn_cpu, &iorep.cpusubchn, 0, 0);
         iorep.pwrsub  = IOReportCreateSubscription(NULL, iorep.pwrchn_eng, &iorep.pwrsubchn, 0, 0);
         iorep.clpcsub = IOReportCreateSubscription(NULL, iorep.clpcchn, &iorep.clpcsubchn, 0, 0);
+        iorep.tempsub = IOReportCreateSubscription(NULL, iorep.tempchn_sl0, &iorep.tempsubchn, 0, 0);
         
         /*
          * dealing with outputing
@@ -403,6 +413,7 @@ int main(int argc, char * argv[])
                 vd.cluster_use[i]   = @0;
                 vd.cluster_sums[i]  = @0;
                 vd.cluster_freqs[i] = @0;
+                vd.cluster_temps[i] = @0;
             }
 
             for (int i = 0; i < ([sd.cluster_core_counts count]); i++) {

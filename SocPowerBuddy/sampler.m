@@ -22,6 +22,7 @@ void sample(iorep_data* iorep,  // holds our channel subs from the iorep
     CFDictionaryRef pwrsamp_b  = NULL;
     CFDictionaryRef clpcsamp_a = NULL;
     CFDictionaryRef clpcsamp_b = NULL;
+    CFDictionaryRef tempsamp = NULL;
     
     NSString* ptype_state     = @"P";
     NSString* vtype_state     = @"V";
@@ -37,6 +38,8 @@ void sample(iorep_data* iorep,  // holds our channel subs from the iorep
     cpusamp_b  = IOReportCreateSamples(iorep->cpusub, iorep->cpusubchn, NULL);
     pwrsamp_b  = IOReportCreateSamples(iorep->pwrsub, iorep->pwrsubchn, NULL);
     clpcsamp_b = IOReportCreateSamples(iorep->clpcsub, iorep->clpcsubchn, NULL);
+    
+    tempsamp = IOReportCreateSamples(iorep->tempsub, iorep->tempsubchn, NULL);
     
     cpu_delta  = IOReportCreateSamplesDelta(cpusamp_a, cpusamp_b, NULL);
     pwr_delta  = IOReportCreateSamplesDelta(pwrsamp_a, pwrsamp_b, NULL);
@@ -79,6 +82,49 @@ void sample(iorep_data* iorep,  // holds our channel subs from the iorep
                 }
             }
         }
+        return kIOReportIterOk;
+    });
+ 
+    IOReportIterate(tempsamp, ^(IOReportSampleRef sample) {
+        NSString* chann_name  = IOReportChannelGetChannelName(sample);
+        NSString* group       = IOReportChannelGetGroup(sample);
+        long      value       = IOReportSimpleGetIntegerValue(sample, 0);
+        
+        if ([chann_name isEqual:@"Temperature (C)"])
+        {
+            for (int ii = 0; ii < [sd->complex_temp_channels count]; ii++)
+            {
+                if ([group isEqual:sd->complex_temp_channels[ii]])
+                {
+                    vd->cluster_temps[ii] = [NSNumber numberWithUnsignedLongLong:value];
+                }    
+            }
+        }
+        /*
+        for (int ii = 0; ii < [sd->pmp_complex_pwr_channels count]; ii++) {
+            if ([group isEqual:@"PMP"]) {
+                if ([chann_name isEqual:sd->pmp_complex_pwr_channels[ii]])
+                {
+                    vd->cluster_pwrs[ii] = [NSNumber numberWithFloat:(float)value];
+                }
+                
+                if (ii <= ([sd->cluster_core_counts count]-1)) {
+                    for (int iii = 0; iii < [sd->cluster_core_counts[ii] intValue]; iii++) {
+                        if ([chann_name isEqual:[NSString stringWithFormat:@"%@%d",sd->pmp_core_pwr_channels[ii], iii, nil]])
+                            vd->core_pwrs[ii][iii] = [NSNumber numberWithFloat:(float)value];
+                    }
+                }
+
+                if ([chann_name isEqual:@"last update"])
+                {
+                    vd->time_delta = value;
+                }
+
+            }
+            
+        }
+       */
+        
         return kIOReportIterOk;
     });
     
