@@ -153,6 +153,16 @@ void sample(iorep_data* iorep,  // holds our channel subs from the iorep
                 }
 
             }
+            if ([sd->extra[0] isEqual:@"Apple M2"]) 
+            {
+                if ([group isEqual:@"Energy Model"])
+                {
+                    if ([chann_name isEqual:sd->complex_pwr_channels[ii]])
+                    {
+                        vd->cluster_pwrs[ii] = [NSNumber numberWithFloat:(float)value];
+                    }
+                }
+            }
             
         }
 
